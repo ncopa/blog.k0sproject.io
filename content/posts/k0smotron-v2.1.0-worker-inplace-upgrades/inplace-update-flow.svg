@@ -1,0 +1,116 @@
+<svg viewBox="0 0 1240 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sequence diagram of the Cluster API in-place update protocol. An operator bumps spec.version, which is written to the kube-api server and notified to the owner controller (the K0sControlPlane controller, or the MachineDeployment controller). The owner controller calls the CanUpdateMachine or CanUpdateMachineSet handler on the k0smotron Runtime Extension, asking whether the change can be applied without recreating the machine. If so, it annotates the Machine, via the kube-api server, to mark an in-place update in progress. The CAPI machine controller then polls the UpdateMachine handler until it reports done, while the k0smotron extension drives a per-node autopilot Plan that swaps the k0s binary and restarts the service. Once done, the machine controller writes back to the kube-api server to clear the annotations, and the owner controller writes back to mark the machine UpToDate before moving to the next one.">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e6edf5"/>
+    </marker>
+    <marker id="arrowCyan" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#38bdf8"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1240" height="720" fill="#0b1220"/>
+
+  <!-- Lane headers -->
+  <g font-family="Helvetica, Arial, sans-serif">
+    <rect x="25" y="18" width="110" height="54" rx="8" fill="#142033" stroke="#2a3a55"/>
+    <text x="80" y="50" text-anchor="middle" font-size="13" font-weight="700" fill="#e6edf5">Operator</text>
+
+    <rect x="185" y="18" width="170" height="54" rx="8" fill="#142033" stroke="#2a3a55"/>
+    <text x="270" y="40" text-anchor="middle" font-size="13" font-weight="700" fill="#e6edf5">kube-api server</text>
+    <text x="270" y="58" text-anchor="middle" font-size="11" fill="#9fb1c9">management cluster</text>
+
+    <rect x="375" y="18" width="210" height="54" rx="8" fill="#142033" stroke="#2a3a55"/>
+    <text x="480" y="40" text-anchor="middle" font-size="13" font-weight="700" fill="#e6edf5">Owner controller</text>
+    <text x="480" y="58" text-anchor="middle" font-size="11" fill="#9fb1c9">K0sControlPlane / MachineDeployment</text>
+
+    <rect x="615" y="18" width="170" height="54" rx="8" fill="#142033" stroke="#2a3a55"/>
+    <text x="700" y="40" text-anchor="middle" font-size="13" font-weight="700" fill="#e6edf5">Machine controller</text>
+    <text x="700" y="58" text-anchor="middle" font-size="11" fill="#9fb1c9">CAPI core</text>
+
+    <rect x="825" y="18" width="190" height="54" rx="8" fill="#142033" stroke="#2a3a55"/>
+    <text x="920" y="40" text-anchor="middle" font-size="13" font-weight="700" fill="#e6edf5">k0smotron extension</text>
+    <text x="920" y="58" text-anchor="middle" font-size="11" fill="#9fb1c9">Runtime SDK webhook</text>
+
+    <rect x="1035" y="18" width="180" height="54" rx="8" fill="#142033" stroke="#2a3a55"/>
+    <text x="1125" y="40" text-anchor="middle" font-size="13" font-weight="700" fill="#e6edf5">autopilot</text>
+    <text x="1125" y="58" text-anchor="middle" font-size="11" fill="#9fb1c9">on the workload cluster</text>
+  </g>
+
+  <!-- Lifelines -->
+  <g stroke="#3a4a68" stroke-width="1.5" stroke-dasharray="3 4">
+    <line x1="80" y1="72" x2="80" y2="700"/>
+    <line x1="270" y1="72" x2="270" y2="700"/>
+    <line x1="480" y1="72" x2="480" y2="700"/>
+    <line x1="700" y1="72" x2="700" y2="700"/>
+    <line x1="920" y1="72" x2="920" y2="700"/>
+    <line x1="1125" y1="72" x2="1125" y2="700"/>
+  </g>
+
+  <g font-family="Helvetica, Arial, sans-serif" font-size="12">
+
+    <!-- Step 1: Operator -> apiserver -->
+    <line x1="80" y1="112" x2="264" y2="112" stroke="#e6edf5" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="72" y="84" width="140" height="24" rx="6" fill="#142033" stroke="#2a3a55"/>
+    <text x="80" y="100" fill="#e6edf5">1 · bump spec.version</text>
+
+    <!-- Step 2: apiserver -> Owner controller -->
+    <line x1="270" y1="152" x2="474" y2="152" stroke="#e6edf5" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="262" y="124" width="170" height="24" rx="6" fill="#142033" stroke="#2a3a55"/>
+    <text x="270" y="140" fill="#e6edf5">2 · notify: version changed</text>
+
+    <!-- Step 3: Owner -> Extension -->
+    <line x1="480" y1="192" x2="914" y2="192" stroke="#e6edf5" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="472" y="164" width="342" height="24" rx="6" fill="#142033" stroke="#2a3a55"/>
+    <text x="480" y="180" fill="#e6edf5">3 · call CanUpdateMachine / CanUpdateMachineSet handler</text>
+
+    <!-- Step 4: Extension -> Owner (dashed return) -->
+    <line x1="920" y1="232" x2="486" y2="232" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrowCyan)"/>
+    <rect x="530" y="204" width="216" height="24" rx="6" fill="#142033" stroke="#2a3a55"/>
+    <text x="540" y="220" fill="#38bdf8">4 · yes — only the k0s version differs</text>
+
+    <!-- Fallback note -->
+    <rect x="375" y="252" width="220" height="72" rx="6" fill="#1c1710" stroke="#7a5a20" stroke-dasharray="4 3"/>
+    <text x="390" y="272" font-size="11" fill="#e0b866">If the answer is "no" (e.g. machine</text>
+    <text x="390" y="287" font-size="11" fill="#e0b866">template also changed): fall back to</text>
+    <text x="390" y="302" font-size="11" fill="#e0b866">the regular rollout — delete + create.</text>
+    <text x="390" y="317" font-size="11" fill="#e0b866">No in-place path, for CP or workers.</text>
+
+    <!-- Step 5: Owner -> apiserver (annotate) -->
+    <line x1="480" y1="360" x2="276" y2="360" stroke="#e6edf5" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="280" y="332" width="290" height="24" rx="6" fill="#142033" stroke="#2a3a55"/>
+    <text x="290" y="348" fill="#e6edf5">5 · annotate Machine: in-place update in progress</text>
+
+    <!-- Step 6: Machine controller -> Extension -->
+    <line x1="700" y1="410" x2="914" y2="410" stroke="#e6edf5" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="692" y="382" width="232" height="24" rx="6" fill="#142033" stroke="#2a3a55"/>
+    <text x="702" y="398" fill="#e6edf5">6 · call UpdateMachine handler (polled)</text>
+
+    <!-- Step 7: Extension -> autopilot -->
+    <line x1="920" y1="460" x2="1119" y2="460" stroke="#e6edf5" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="912" y="432" width="206" height="24" rx="6" fill="#142033" stroke="#2a3a55"/>
+    <text x="922" y="448" fill="#e6edf5">7 · create Plan scoped to this node</text>
+
+    <!-- Step 8: autopilot self-loop -->
+    <rect x="912" y="486" width="186" height="41" rx="6" fill="#142033" stroke="#2a3a55"/>
+    <text x="922" y="504" fill="#38bdf8">8 · swap the k0s binary and</text>
+    <text x="922" y="519" fill="#38bdf8">restart the service on the node</text>
+    <path d="M1125,480 C1205,480 1205,520 1125,520" fill="none" stroke="#38bdf8" stroke-width="1.5" marker-end="url(#arrowCyan)"/>
+
+    <!-- Step 9: Extension -> Machine controller (dashed return) -->
+    <line x1="920" y1="567" x2="706" y2="567" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="6 4" marker-end="url(#arrowCyan)"/>
+    <rect x="710" y="539" width="192" height="24" rx="6" fill="#142033" stroke="#2a3a55"/>
+    <text x="720" y="555" fill="#38bdf8">9 · done (RetryAfterSeconds: 0)</text>
+
+    <!-- Step 10: Machine controller -> apiserver (clear annotations) -->
+    <line x1="700" y1="617" x2="276" y2="617" stroke="#e6edf5" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="280" y="589" width="320" height="24" rx="6" fill="#142033" stroke="#2a3a55"/>
+    <text x="290" y="605" fill="#e6edf5">10 · clears the "in-place update in progress" annotations</text>
+
+    <!-- Step 11: Owner controller -> apiserver (mark UpToDate) -->
+    <line x1="480" y1="667" x2="276" y2="667" stroke="#e6edf5" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <rect x="280" y="632" width="240" height="30" rx="6" fill="#142033" stroke="#2a3a55"/>
+    <text x="290" y="646" fill="#e6edf5">11 · marks Machine UpToDate → next</text>
+    <text x="290" y="659" fill="#e6edf5">machine (maxUnavailable: 1 for workers)</text>
+
+  </g>
+</svg>
