@@ -1,0 +1,24 @@
+/* GoAT (```goat fences) renders ASCII diagrams to SVG at build time.
+ *
+ * GoAT places every glyph on a fixed 8px grid and sizes it `font-size: 1em`
+ * inline on each <text>. That `1em` resolves against the parent <svg>, which
+ * otherwise inherits PaperMod's 18px body size, so glyphs render about 10.8px
+ * wide (monospace advance is roughly 0.6em) on an 8px grid and overlap.
+ *
+ * Sizing the <svg> makes the inline 1em resolve to something that fits the
+ * grid: 8px / 0.6 advance = 13.3px. Slightly under that leaves a hair of gap,
+ * which reads far better than overlap. No !important needed, because the
+ * inline rule is relative to this one.
+ */
+.goat svg {
+  font-size: 13.2px;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Diagrams are line art, so let them breathe like a figure rather than sit
+ * tight against the surrounding paragraphs. */
+.goat.svg-container {
+  margin: 1.5rem 0;
+  overflow-x: auto;
+}
